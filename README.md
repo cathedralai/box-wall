@@ -24,14 +24,14 @@ The last line should read `RESULT: all checks passed`. The first command fetches
 - **Every sandbox has three receipts:** it was created, it ran one command, it was deleted. The create receipt names the image (`alpine:3.20` with its digest) and the network rule (no network).
 - **Every sandbox ran the same program, and it is the one in this folder.** `command.json` holds the exact command, with `game.awk` inside it. Its hash is the program hash on every run receipt.
 - **The squares in the film are what the sandboxes returned.** `results.jsonl` holds each sandbox's answer. Each answer hashes to the result hash on that sandbox's own run receipt, and `run.json`, which the film is drawn from, holds the same moves. Change one move of one sandbox and the check fails.
-- **Every sandbox rolled its own seed** from its own kernel's random source, so no two games are the same.
+- **Every sandbox rolled its own seed** from its own kernel's random source, and this recorded run contains distinct seeds. That is not a guarantee for future runs.
 - **Both hotels run a build that is on Cathedral's signed list** (the copy in this folder, release 16).
 
 ## What a pass does not tell you
 
 - **That these are all the receipts.** This is one account's view of two shared hotels; receipts of other accounts are left out by design. The checker says so itself: "each receipt; not that none are missing".
 - **That the signed list is genuine.** `verify.py` only looks the measurements up in the copy of the list in this folder. It does not check the list's own signature.
-- **Anything about speed.** The times in the receipts are the hotel's clock. The "up in 43 seconds" in the film is our client's clock for one run.
+- **Anything about speed.** The times in the receipts are the hotel's clock. The clock in the film is our client's clock for one recorded run, not a capacity benchmark.
 - **That nothing else could go wrong on a hotel.** A receipt says what the sealed hotel signed. It is a signed record, not a mathematical proof.
 
 ## One thing we did not do at the time

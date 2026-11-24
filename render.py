@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Render the box wall film from a run file: one tile per sealed box, drawn from the moves that box computed.
+"""Render the box wall film from a run file: one tile per sandbox, drawn from its recorded moves.
 
-No box count appears anywhere in the film (Fred, 21 Nov 2026: "we wont name a number").
+No sandbox count appears anywhere in the film (Fred, 21 Nov 2026: "we wont name a number").
 """
 from __future__ import annotations
 
@@ -26,7 +26,8 @@ PITCH = CELLS * PX + GAP
 
 
 def font(size: int, bold: bool = False):
-    for path, idx in (("/System/Library/Fonts/Menlo.ttc", 1 if bold else 0), ("/System/Library/Fonts/Monaco.ttf", 0)):
+    for path, idx in (("/System/Library/Fonts/Menlo.ttc", 1 if bold else 0), ("/System/Library/Fonts/Monaco.ttf", 0),
+                      ("/usr/share/fonts/truetype/dejavu/DejaVuSansMono-Bold.ttf" if bold else "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf", 0)):
         try:
             return ImageFont.truetype(path, size, index=idx)
         except OSError:
@@ -106,9 +107,9 @@ def main() -> int:
         frame.paste(Image.fromarray(tile), (x0, y0))
         draw.rectangle([x0 - 2, y0 - 2, x0 + CELLS * z + 1, y0 + CELLS * z + 1], outline=(255, 138, 101), width=2)
         r = rooms[k]
-        draw.text((x0, y0 - 38), "one box, up close", font=f_small, fill=DIM)
+        draw.text((x0, y0 - 38), "one sandbox, up close", font=f_small, fill=DIM)
         yy = y0 + CELLS * z + 22
-        for label, value in (("box", str(r.get("host") or "")[:12]), ("its own seed", str(r.get("seed"))), ("embers", str(int(moves[k, step, 4])))):
+        for label, value in (("sandbox", str(r.get("host") or "")[:12]), ("its own seed", str(r.get("seed"))), ("embers", str(int(moves[k, step, 4])))):
             draw.text((x0, yy), label, font=f_tiny, fill=DIM)
             draw.text((x0 + 170, yy), value, font=f_tiny, fill=INK)
             yy += 32
@@ -130,7 +131,7 @@ def main() -> int:
             u = min(1.0, (f - T_INTRO) / T_UP)
             now_ms = u * up_ms.max()
             clock_s = now_ms / 1000.0
-            # Frames since this box came up; not capped, so the last flashes fade during the hold.
+            # Frames since this sandbox came up; not capped, so the last flashes fade during the hold.
             age = ((f - T_INTRO) / T_UP * up_ms.max() - up_ms) / max(1.0, up_ms.max() / T_UP)
             lit = (age >= 0).astype(np.float32)
             flash = np.where((age >= 0) & (age < 5), 1.0 - age / 5.0, 0.0).astype(np.float32)
@@ -157,26 +158,26 @@ def main() -> int:
         if phase == "intro":
             a = min(1.0, f / (0.5 * FPS))
             c = int(245 * a)
-            draw.text((gx, 84), "A wall of sealed boxes.", font=f_title, fill=(c, c, c))
+            draw.text((gx, 84), "A wall of sandboxes.", font=f_title, fill=(c, c, c))
         elif phase == "up":
-            draw.text((gx, 84), "Boxes coming up.", font=f_title, fill=INK)
+            draw.text((gx, 84), "Sandboxes coming up.", font=f_title, fill=INK)
             draw.text((gx + grid_w + 48, gy), f"{clock_s:5.1f} s", font=f_big, fill=INK)
-            draw.text((gx + grid_w + 48, gy + 104), "real clock, sped up", font=f_tiny, fill=DIM)
-            draw.text((gx + grid_w + 48, gy + 150), "Each square is one\nsealed box, lit the\nmoment it answered.", font=f_small, fill=DIM, spacing=8)
+            draw.text((gx + grid_w + 48, gy + 104), "client clock, one run", font=f_tiny, fill=DIM)
+            draw.text((gx + grid_w + 48, gy + 150), "Each square is one\nsandbox, lit the\nmoment it answered.", font=f_small, fill=DIM, spacing=8)
         elif phase == "play":
-            draw.text((gx, 84), "Every box plays its own game.", font=f_title, fill=INK)
+            draw.text((gx, 84), "Each sandbox plays its game.", font=f_title, fill=INK)
             seg = min(len(zoom_ids) - 1, step * len(zoom_ids) // steps)
             zoom_panel(draw, frame, img, zoom_ids[seg], step)
             embers = int(moves[:, step, 4].sum())
-            draw.text((gx + grid_w + 48, gy + 40 + CELLS * 20 + 140), "embers caught,\nall boxes", font=f_tiny, fill=DIM, spacing=6)
+            draw.text((gx + grid_w + 48, gy + 40 + CELLS * 20 + 140), "embers caught,\nall sandboxes", font=f_tiny, fill=DIM, spacing=6)
             draw.text((gx + grid_w + 48, gy + 40 + CELLS * 20 + 200), f"{embers:,}", font=f_big, fill=(255, 213, 79))
         else:
             cy = H // 2 - 150
-            draw.text((gx + 40, cy), "Every square was a real sealed box.", font=f_title, fill=INK)
-            draw.text((gx + 40, cy + 90), "Each one rolled its own seed and played its own game.", font=f_mid, fill=INK)
-            draw.text((gx + 40, cy + 150), f"All of them were up in {create_s:.0f} seconds.", font=f_mid, fill=(255, 138, 101))
+            draw.text((gx + 40, cy), "One square per recorded sandbox.", font=f_title, fill=INK)
+            draw.text((gx + 40, cy + 90), "Saved moves and receipts accompany this run.", font=f_mid, fill=INK)
+            draw.text((gx + 40, cy + 150), "One recorded run, not a capacity benchmark.", font=f_mid, fill=(255, 138, 101))
             draw.text((gx + 40, cy + 240), "cathedral.computer", font=f_mid, fill=(255, 213, 79))
-        draw.text((gx, H - 46), "Filmed from one live run. The wall replays the moves each box computed inside its own sealed room.", font=f_tiny, fill=DIM)
+        draw.text((gx, H - 46), "Replay of one recorded run. Data and receipts: github.com/cathedralai/box-wall", font=f_tiny, fill=DIM)
         ff.stdin.write(frame.tobytes())
     ff.stdin.close()
     rc = ff.wait()
